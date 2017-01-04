@@ -1,0 +1,25 @@
+Package: shinyVizModules
+Type: Package
+Title: Shiny Modules that provide data visualisation
+Version: 0.0.01
+Author: Christopher Hopkinson
+Maintainer: <therealchristopherhopkinson@hotmail.com>
+Description: Shiny Modules that provide data visualisation
+License: MIT
+LazyData: TRUE
+Imports:
+    data.table,
+    plyr,
+    dplyr,
+    DT,
+    dtplyr,
+    magrittr,
+    miniUI,
+    purrr,
+    rstudioapi,
+    shiny,
+    plotly,
+    ggplot2
+Suggests:
+    testthat
+RoxygenNote: 5.0.1
