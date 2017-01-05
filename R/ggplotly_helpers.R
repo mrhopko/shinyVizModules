@@ -119,6 +119,16 @@ compose_ggplotly.ggplotly_options <- function(ggplotly_options, ...) {
   
 }
 
-
+name_val_to_list <- function(l_names, l_vals) {
+  if(is_null_empty_na(l_vals)) return(list())
+  l <- as.list(l_vals)
+  if(is_null_empty_na(l_names)) return(l)
+  if(length(l_vals) != length(l_names)) {
+    warning("length of l_names and l_vals does not match")
+    return(l)
+  }
+  names(l) <- l_names
+  l
+}
 
 
