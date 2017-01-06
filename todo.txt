@@ -1,0 +1,34 @@
+Mapping: 
+required for each geom
+allowed for each geom
+build default ui from list given geom
+data types shown against variables
+automatic conversion if required
+
+Layer:
+select data
+other fields relevant to geom (such as stat)
+add other geoms
+
+Theme:
+build a theme dialogues
+x-axis, y-axis, titles, legends ...
+
+Scales:
+scale dialogue
+
+Facet:
+Facet dialogue
+
+Output:
+-options object
+-plot code
+-options object as JSON object/file
+
+gadget:
+create gadget and add-in
+
+UI:
+list/json to UI
+
+

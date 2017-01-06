@@ -119,6 +119,11 @@ compose_ggplotly.ggplotly_options <- function(ggplotly_options, ...) {
   
 }
 
+#'Convert vectors of names and values to a list
+#'
+#'@param l_names character vector of list names
+#'@param l_vals character vector of list values
+#'@retunrs list of l_names[i] = l_vals[i]
 name_val_to_list <- function(l_names, l_vals) {
   if(is_null_empty_na(l_vals)) return(list())
   l <- as.list(l_vals)
@@ -131,4 +136,12 @@ name_val_to_list <- function(l_names, l_vals) {
   l
 }
 
+
+dot_to_underscore <- function(x) {
+  gsub("\\.", "\\_\\_",x)
+}
+
+underscore_to_dot <- function(x) {
+  gsub("\\_\\_","\\." ,x)
+}
 

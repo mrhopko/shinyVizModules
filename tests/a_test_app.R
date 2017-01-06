@@ -3,6 +3,7 @@ library(ggplot2)
 library(plotly)
 
 source("R/ggplotly_helpers.R")
+source("R/ggplotly_geoms.R")
 source("R/ggplotly_mapping_module.R")
 source("R/ggplotly_module.R")
 source("R/helpers.R")
@@ -19,7 +20,7 @@ server <- function(input, output, session) {
   rf_data <- reactive({
     d <- datasets::mtcars
     d$car <- rownames(d)
-    data$cyl <- as.factor(data$cyl)
+    d$cyl <- as.factor(d$cyl)
     d
   })
   
