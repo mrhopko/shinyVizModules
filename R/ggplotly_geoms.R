@@ -119,7 +119,9 @@ geom_mapping <- function(geom_name = "") {
         list(
           aes_required =  c("x"),
           aes_allowed = c("x","y","alpha","colour","fill","linetype","size","weight"),
-          params = c("data","stat")),
+          params = list(
+            stat = p_list("character", c("density", "count"), "density")
+          )),
       geom_density_2d = 
         list(
           aes_required = c("x","y"),
@@ -230,7 +232,14 @@ geom_mapping <- function(geom_name = "") {
         list(
           aes_required = c("x","y"),
           aes_allowed = c("x","y","alpha","colour","fill","shape","size","stroke"),
-          params = list()),
+          params = list(
+            alpha = p_list("numeric", numeric(), NULL),
+            colour = p_list("character", colour_choices, NULL),
+            fill = p_list("character", colour_choices, NULL),
+            shape = p_list("numeric", shape_choices, NULL),
+            size = p_list("numeric", numeric(), NULL),
+            stroke = p_list("character", colour_choices, NULL)
+          )),
       geom_polygon = 
         list(
           aes_required = c("x","y") ,
@@ -298,6 +307,7 @@ geom_mapping <- function(geom_name = "") {
           aes_allowed = c("x","y","alpha","colour","fill","linetype","size","weight"),
           params = list(
             formula = p_list("formula", character(), "y ~ x"),
+            method = p_list("character", c("lm", "glm", "gam", "loess", "rlm", "auto"), "auto"),
             se = p_list("logical", c(TRUE, FALSE), TRUE)
           )
         ),
@@ -318,6 +328,7 @@ geom_mapping <- function(geom_name = "") {
     mappings
   }
 }
+
 
 geom_default_mapping <- function(geom_name, current_map_attr) {
   if(is_null_empty_na(geom_name)) return(list())
@@ -346,5 +357,7 @@ geom_params_to_list <- function(geom_name, current_param_list, layer_id) {
   geom_params <- current_param_list[required_params]
   names(geom_params) <- names(geom_mapping(geom_name)$params)
   
-  geom_params
+  geom_params_no_empty <- rlist::list.clean(geom_params, function(x) is_null_empty_na(x,test_blank = TRUE))
+  
+  geom_params_no_empty
 }

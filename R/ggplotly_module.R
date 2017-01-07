@@ -125,6 +125,10 @@ ggplotly_module_param_dialog <- function(ns, param_list, layer_id) {
         
       } else if (param$type == "character") {
         shiny::selectizeInput(id, label = param_name, choices = param$choices, selected = selected, multiple = TRUE, options = list(maxItems = 1))
+      } else if (param$type == "logical") {
+        shiny::checkboxInput(id, param_name, value = selected)
+      } else if (param$type == "formula") {
+        shiny::textInput(id, label = param_name, value = param$selected)
       } else {
         tags$div()
       }
