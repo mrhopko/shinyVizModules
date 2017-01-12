@@ -1,4 +1,4 @@
-theme_mapping <- function(theme_element) {
+theme_mapping <- function(theme_element = "") {
   
   p_list <- function(type, choices, selected) {
     return(
@@ -42,7 +42,6 @@ theme_mapping <- function(theme_element) {
   
   mappings <-
     list(
-      axis = list(
         axis.title = element_text_list,
         axis.title.x = element_text_list,
         axis.title.y = element_text_list,
@@ -55,9 +54,7 @@ theme_mapping <- function(theme_element) {
         axis.ticks.length = p_list("numeric", numeric(), NULL),
         axis.line = element_line_list,
         axis.line.x = element_line_list,
-        axis.line.y = element_line_list
-      ),
-      legend = list(
+        axis.line.y = element_line_list,
         legend.background = element_rect_list,
         legend.margin = p_list("numeric", numeric(), NULL),
         legend.key = element_rect_list,
@@ -72,9 +69,7 @@ theme_mapping <- function(theme_element) {
         legend.direction = p_list("character", c("horizontal","vertical"), NULL),
         legend.justification = p_list("character", c("center"), NULL),
         legend.box = p_list("character", c("horizontal","vertical"), NULL),
-        legend.box.just = p_list("character", c("none", "left", "right", "bottom", "top"), NULL)  
-      ),
-      panel = list(
+        legend.box.just = p_list("character", c("none", "left", "right", "bottom", "top"), NULL),  
         panel.background = element_rect_list,
         panel.border = element_rect_list,
         panel.margin = p_list("numeric", c(0,1), NULL),
@@ -87,22 +82,23 @@ theme_mapping <- function(theme_element) {
         panel.grid.minor = element_line_list,
         panel.grid.minor.x = element_line_list,
         panel.grid.minor.y = element_line_list,
-        panel.ontop = p_list("logical", c(TRUE,FALSE), NULL)
-      ),
-      plot = list(
+        panel.ontop = p_list("logical", c(TRUE,FALSE), NULL),
         plot.background = element_rect_list,
         plot.title = element_text_list,
-        plot.margin = p_list("numeric", c(0,1), NULL)
-      ),
-      strip = list(
+        plot.margin = p_list("numeric", c(0,1), NULL),
         strip.background = element_rect_list,
         strip.text = element_text_list,
         strip.text.x = element_text_list,
         strip.text.y = element_text_list,
         strip.switch.pad.grid = p_list("numeric", c(0,1), NULL),
         strip.switch.pad.wrap = p_list("numeric", c(0,1), NULL)
-      )
+      
     )
   
-  return(mappings[[theme_element]])
+  if(is_null_empty_na(theme_element, test_blank = TRUE)) {
+    mappings
+  } else {
+    mappings[[theme_element]]
+  }
+
 }

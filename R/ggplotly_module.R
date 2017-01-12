@@ -6,6 +6,7 @@ ggplotlyModuleOutput <- function(id) {
     fluidRow(
       column(12,
              actionButton(ns("button_add_layer"), "Add Layer"),
+             actionButton(ns("button_theme"), "Change Theme"),
              tags$hr(),
              tags$div(id = paste0(ns("layer_ui_container"),0)),
              textOutput(ns("test_layer_1")),
@@ -153,6 +154,90 @@ ggplotly_module_param_dialog <- function(ns, param_list, layer_id) {
   
 }
 
+ggplotly_theme_modal <- function(ns) {
+  
+  modalDialog(
+    fluidRow(column(6,
+                    selectInput(ns("select_theme"), label = NULL, choices = c("theme_bw","theme_classic"))
+                    ),
+             column(6,
+                    actionButton(ns("button_theme_add"), "Add ")
+                    ),
+             column(12,
+                    tags$div(id = paste0(ns("theme_ui_container"), 0)) 
+                    )
+             ),
+    footer = shiny::tagList(
+      shiny::modalButton("cancel"),
+      shiny::actionButton(ns("button_theme_save"), "", icon = icon("floppy-o"))
+    ),
+    easyClose = TRUE
+  )
+  
+}
+
+ggplotly_theme_ui_row <- function(n, ns) {
+  
+  element_choices <- names(theme_mapping())
+  
+  tags$div(
+    tags$div(
+      fluidRow(
+        column(4,
+               selectizeInput(paste0(ns("select_theme_element"),n), label = NULL, choices = element_choices, multiple = TRUE, options = list(maxItems = 1))
+        ),
+        column(4,
+               uiOutput(paste0(ns("select_theme_attribute"),n))
+               ),
+        column(4,
+               uiOutput(paste0(ns("theme_attriubte_value"), n))
+               ),
+        column(12,
+               tags$hr())
+      ),
+      id = paste0(ns("theme_ui"), n)),
+    id = paste0(ns("theme_ui_container"), n)
+  )
+}
+
+ggplotly_theme_ui_widget <- function(param, param_name, ns, layer_id) {
+  
+  id <- paste0(ns(dot_to_underscore(param_name)), layer_id)
+  selected <- if(is_null_empty_na(param$selected)) {
+    NULL
+  } else {
+    param$selected
+  }
+  
+  ui <-
+    if(param$type == "numeric") {
+      if(is_null_empty_na(param$choices)) {
+        shiny::numericInput(id, label = NULL, value = selected)
+      } else {
+        shiny::numericInput(id, label = NULL, value = selected, min = min(param$choices), max = max(param$choices))
+      }
+    } else if (param$type == "integer") {
+      if(is_null_empty_na(param$choices)) {
+        shiny::numericInput(id, label = NULL, value = selected, step = 1)
+      } else {
+        shiny::numericInput(id, label = NULL, value = selected, min = min(param$choices), max = max(param$choices), step = 1)
+      }
+      
+    } else if (param$type == "character") {
+      shiny::selectizeInput(id, label = NULL, choices = param$choices, selected = selected, multiple = TRUE, options = list(maxItems = 1))
+    } else if (param$type == "logical") {
+      shiny::checkboxInput(id, NULL, value = selected)
+    } else if (param$type == "formula") {
+      shiny::textInput(id, label = NULL, value = param$selected)
+    } else if (param$type == "text") {
+      shiny::textInput(id, label = NULL, value = param$selected)
+    } else {
+      tags$div()
+    }
+  
+  return(ui)
+  
+}
 
 ggplotlyModule <- function(input, output, session, rf_data) {
   
@@ -161,6 +246,57 @@ ggplotlyModule <- function(input, output, session, rf_data) {
   attr_choices = reactive({
     names(rf_data())
   })
+  
+  #Theme Data --------------
+  current_theme <- reactiveValues(theme_id = 0)
+  
+  
+  #Theme UI elements --------------
+  observeEvent(input$button_theme, {
+    showModal(ggplotly_theme_modal(ns))
+  })
+  
+  observeEvent(input$button_theme_add, {
+    
+    theme_id <- current_theme$theme_id + 1
+    current_theme$theme_id <- theme_id
+    
+    insertUI(selector = paste0('#',ns("theme_ui_container"), theme_id - 1),
+             where = "afterEnd",
+             ui = ggplotly_theme_ui_row(theme_id, ns))
+    
+
+    observeEvent(input[[paste0("select_theme_element", theme_id)]], {
+
+      output[[paste0("select_theme_attribute", theme_id)]] <- 
+        renderUI({
+          selectizeInput(paste0(ns("select_theme_attribute_o"), theme_id), 
+                         label = NULL,
+                         choices = names(theme_mapping(input[[paste0("select_theme_element", theme_id)]])),
+                         multiple = TRUE,
+                         options = list(maxItems = 1))
+        })
+    })
+    
+    observeEvent(input[[paste0("select_theme_attribute_o", theme_id)]], {
+      element_selected <- input[[paste0("select_theme_element", theme_id)]]
+      attribute_selected <- input[[paste0("select_theme_attribute_o", theme_id)]]
+      
+      print(element_selected)
+      print(attribute_selected)
+      print(theme_mapping(element_selected)[[attribute_selected]])
+      
+      output[[paste0("theme_attriubte_value", theme_id)]] <- 
+        renderUI({
+          ggplotly_theme_ui_widget(
+            theme_mapping(element_selected)[[attribute_selected]],
+            param_name = paste0(element_selected, "_a_", attribute_selected),
+            ns,
+            theme_id)
+        })
+    })
+  })
+  
   
   #Layer Data -------------
   geom_choices <- names(geom_mapping())
