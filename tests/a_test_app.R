@@ -6,6 +6,7 @@ source("R/ggplotly_helpers.R")
 source("R/ggplotly_geoms.R")
 source("R/ggplotly_mapping_module.R")
 source("R/ggplotly_module.R")
+source("R/ggplotly_theme.R")
 source("R/helpers.R")
 
 ui <- shiny::navbarPage("Visualise",

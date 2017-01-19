@@ -11,8 +11,12 @@ other fields relevant to geom (such as stat)
 add other geoms
 
 Theme:
-build a theme dialogues
-x-axis, y-axis, titles, legends ...
+All themes into select_input
+save theme into reactivevalue
+load theme from reactivevalue
+convert reactivevalue into plot
+
+
 
 Scales:
 scale dialogue

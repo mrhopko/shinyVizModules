@@ -156,17 +156,43 @@ ggplotly_module_param_dialog <- function(ns, param_list, layer_id) {
 
 ggplotly_theme_modal <- function(ns) {
   
+  modal_ui <- 
+    fluidRow(
+      column(6,
+        selectInput(ns("select_theme"), label = NULL, choices = c("theme_bw","theme_classic"))
+      ),
+      column(6,
+             actionButton(ns("button_theme_add"), "Add ")
+      ),
+      column(12,
+             tags$div(id = paste0(ns("theme_ui_container"), 0)) 
+      ),
+      column(12,
+             textOutput(ns("theme_test_id")))
+  )
+  
+  # ui_list <- list()
+  # 
+  # if(!is_null_empty_na(current_theme$theme_id)) {
+  #   if(current_theme$theme_id > 0) {
+  #     for(i in 1:current_theme$theme_id) {
+  #       ui_list[[i]] <- 
+  #         if(i %in% current_theme$theme_deleted) {
+  #           tags$div(id = paste0(ns("theme_ui_container"),i))
+  #         } else {
+  #           theme_list <- list(theme_element = current_theme[[paste0("theme_element", i)]],
+  #                              theme_attribute = current_theme[[paste0("theme_attribute",i)]],
+  #                              theme_attribute_value = current_theme[[paste0("theme_attribute_value",i)]])
+  #           ggplotly_theme_ui_row(i, ns, theme_list)
+  #         }
+  #         
+  #     }
+  #     modal_ui <- append(list(modal_ui), ui_list)
+  #   }
+  # }
+  
   modalDialog(
-    fluidRow(column(6,
-                    selectInput(ns("select_theme"), label = NULL, choices = c("theme_bw","theme_classic"))
-                    ),
-             column(6,
-                    actionButton(ns("button_theme_add"), "Add ")
-                    ),
-             column(12,
-                    tags$div(id = paste0(ns("theme_ui_container"), 0)) 
-                    )
-             ),
+    modal_ui,
     footer = shiny::tagList(
       shiny::modalButton("cancel"),
       shiny::actionButton(ns("button_theme_save"), "", icon = icon("floppy-o"))
@@ -176,33 +202,48 @@ ggplotly_theme_modal <- function(ns) {
   
 }
 
-ggplotly_theme_ui_row <- function(n, ns) {
-  
-  element_choices <- names(theme_mapping())
-  
-  tags$div(
-    tags$div(
-      fluidRow(
-        column(4,
-               selectizeInput(paste0(ns("select_theme_element"),n), label = NULL, choices = element_choices, multiple = TRUE, options = list(maxItems = 1))
-        ),
-        column(4,
-               uiOutput(paste0(ns("select_theme_attribute"),n))
-               ),
-        column(4,
-               uiOutput(paste0(ns("theme_attriubte_value"), n))
-               ),
-        column(12,
-               tags$hr())
-      ),
-      id = paste0(ns("theme_ui"), n)),
-    id = paste0(ns("theme_ui_container"), n)
-  )
-}
+# ggplotly_theme_ui_row <- function(n, ns, selected_list = NULL) {
+#   
+#   element_choices <- names(theme_mapping())
+#   
+#   tags$div(
+#     tags$div(
+#       fluidRow(
+#         column(10,
+#           fluidRow(
+#             column(4,
+#                    selectizeInput(paste0(ns("select_theme_element"),n), 
+#                                   label = NULL, 
+#                                   selected = selected_list$theme_element, 
+#                                   choices = element_choices, 
+#                                   multiple = TRUE, 
+#                                   options = list(maxItems = 1))
+#             ),
+#             column(4,
+#                    uiOutput(paste0(ns("select_theme_attribute"),n))
+#             ),
+#             column(4,
+#                    uiOutput(paste0(ns("theme_attriubte_value"), n))
+#             )
+#           )
+#         ),
+#         column(2,
+#                actionButton(paste0(ns("button_remove_theme"), n), "Remove")
+#         ),
+#         column(12,
+#                tags$hr()
+#         )
+#       ),
+#       id = paste0(ns("theme_ui"), n)),
+#     id = paste0(ns("theme_ui_container"), n)
+#   )
+# }
 
-ggplotly_theme_ui_widget <- function(param, param_name, ns, layer_id) {
+ggplotly_theme_ui_widget <- function(param, ns, theme_id) {
   
-  id <- paste0(ns(dot_to_underscore(param_name)), layer_id)
+  print("theme widget")
+  
+  id <- paste0(ns("select_theme_attribute_value_o"), theme_id)
   selected <- if(is_null_empty_na(param$selected)) {
     NULL
   } else {
@@ -239,6 +280,67 @@ ggplotly_theme_ui_widget <- function(param, param_name, ns, layer_id) {
   
 }
 
+
+insert_ui_row_by_row <- function(ns, ui_row_func, selector_func, rows = 0, where = "afterEnd") {
+  
+  if (rows > 0) {
+    for(i in 1:rows) {
+      insertUI(
+        selector = selector_func(i), 
+        where = where,
+        ui = ui_row_func(ns, i)
+      ) 
+    }
+  }
+  
+}
+
+theme_ui_row_func <- function(ns, i, current_theme) {
+  
+  print("theme row")
+  
+  element_choices <- names(theme_mapping())
+  
+  element_selected <- 
+    if(is_null_empty_na(current_theme[[paste0("theme_element", i)]], test_blank = TRUE)) {
+      NULL
+    } else {
+      current_theme[[paste0("theme_element", i)]]
+    }
+  
+  tags$div(
+    tags$div(
+      fluidRow(
+        column(10,
+               fluidRow(
+                 column(4,
+                        selectizeInput(paste0(ns("select_theme_element"),i), 
+                                       label = NULL, 
+                                       selected = element_selected, 
+                                       choices = element_choices, 
+                                       multiple = TRUE, 
+                                       options = list(maxItems = 1))
+                 ),
+                 column(4,
+                        uiOutput(paste0(ns("select_theme_attribute"), i))
+                 ),
+                 column(4,
+                        uiOutput(paste0(ns("select_theme_attribute_value"), i))
+                 )
+               )
+        ),
+        column(2,
+               actionButton(paste0(ns("button_remove_theme"), i), "Remove")
+        ),
+        column(12,
+               tags$hr()
+        )
+      ),
+      id = paste0(ns("theme_ui"), i)),
+    id = paste0(ns("theme_ui_container"), i)
+  )
+}
+
 ggplotlyModule <- function(input, output, session, rf_data) {
   
   ns <- session$ns
@@ -248,53 +350,111 @@ ggplotlyModule <- function(input, output, session, rf_data) {
   })
   
   #Theme Data --------------
-  current_theme <- reactiveValues(theme_id = 0)
-  
+  current_theme <- reactiveValues(theme_id = 0, theme_deleted = 0)
   
   #Theme UI elements --------------
-  observeEvent(input$button_theme, {
-    showModal(ggplotly_theme_modal(ns))
-  })
   
+  #button_theme -----------------------------------
+  observeEvent(input$button_theme, {
+    
+    #show mdoal
+    showModal(ggplotly_theme_modal(ns))
+    
+    #insert ui from current_theme
+    insert_ui_row_by_row(ns, 
+                         ui_row_func =  function(ns, i) theme_ui_row_func(ns = ns, i = i, current_theme = current_theme),
+                         selector_func = function(i) paste0('#',ns("theme_ui_container"), i - 1), 
+                         rows = current_theme$theme_id)
+    
+  }) # end of button_theme
+  
+  # button_theme_add -----------------------------
   observeEvent(input$button_theme_add, {
     
-    theme_id <- current_theme$theme_id + 1
-    current_theme$theme_id <- theme_id
+  print("button_theme_add")
+  
+    # increment theme_id
+    theme_id <- isolate(current_theme$theme_id + 1)
+    isolate(current_theme$theme_id <- theme_id)
     
+    # add ui row
     insertUI(selector = paste0('#',ns("theme_ui_container"), theme_id - 1),
              where = "afterEnd",
-             ui = ggplotly_theme_ui_row(theme_id, ns))
+             ui = theme_ui_row_func(ns, theme_id, current_theme))
     
-
+    
+    # add observers
     observeEvent(input[[paste0("select_theme_element", theme_id)]], {
-
       output[[paste0("select_theme_attribute", theme_id)]] <- 
         renderUI({
-          selectizeInput(paste0(ns("select_theme_attribute_o"), theme_id), 
-                         label = NULL,
-                         choices = names(theme_mapping(input[[paste0("select_theme_element", theme_id)]])),
-                         multiple = TRUE,
-                         options = list(maxItems = 1))
+          print("render theme element")
+            selectizeInput(paste0(ns("select_theme_attribute_o"), theme_id), 
+                           label = NULL,
+                           selected = input[[paste0("select_theme_attribute_o", theme_id)]],
+                           choices = names(theme_mapping(isolate(input[[paste0("select_theme_element", theme_id)]]))),
+                           multiple = TRUE,
+                           options = list(maxItems = 1))
         })
+    })
+    
+    observeEvent(input[[paste0("select_theme_attribute_0")]], {
+      current_theme[[paste0]]
     })
     
     observeEvent(input[[paste0("select_theme_attribute_o", theme_id)]], {
-      element_selected <- input[[paste0("select_theme_element", theme_id)]]
-      attribute_selected <- input[[paste0("select_theme_attribute_o", theme_id)]]
-      
-      print(element_selected)
-      print(attribute_selected)
-      print(theme_mapping(element_selected)[[attribute_selected]])
-      
-      output[[paste0("theme_attriubte_value", theme_id)]] <- 
+
+      output[[paste0("select_theme_attribute_value", theme_id)]] <-
         renderUI({
-          ggplotly_theme_ui_widget(
-            theme_mapping(element_selected)[[attribute_selected]],
-            param_name = paste0(element_selected, "_a_", attribute_selected),
-            ns,
-            theme_id)
+          param <- theme_mapping(isolate(input[[paste0("select_theme_element", theme_id)]]))[[isolate(input[[paste0("select_theme_attribute_o", theme_id)]])]]
+          param$selected <- input[[paste0("select_theme_attribute_value_o", theme_id)]]
+          print("render attribute value")
+            ggplotly_theme_ui_widget(
+              param,
+              ns,
+              theme_id)
         })
     })
+    
+    observeEvent(input[[paste0("button_remove_theme", theme_id)]], {
+      removeUI(selector = paste0('#',ns("theme_ui"), theme_id))
+      current_theme$theme_deleted <- c(current_theme$theme_deleted, theme_id)
+    })
+    
+    
+    
+  })
+  
+  observeEvent(input$button_theme_save, {
+    
+    if(!is_null_empty_na(input$select_theme)) {
+      current_theme$ggtheme <- input$select_theme  
+    }
+    
+    if(!is_null_empty_na(current_theme$theme_id) && current_theme$theme_id > 0) {
+      for (i in 1:current_theme$theme_id) {
+        if(!(i %in% current_theme$theme_deleted)) {
+          current_theme[[paste0("theme_element", i)]] <- input[[paste0("theme_element",i)]]
+          current_theme[[paste0("theme_attribute", i)]] <- input[[paste0("theme_attribute",i)]]
+          current_theme[[paste0("theme_attribute_value", i)]] <- input[[paste0("theme_attribute_value",i)]]
+        } else {
+          current_theme[[paste0("theme_element", i)]] <- NULL
+          current_theme[[paste0("theme_attribute", i)]] <- NULL
+          current_theme[[paste0("theme_attribute_value", i)]] <- NULL
+        }
+      }
+    }
+
+    removeModal()
+    
+  })
+  
+  output$theme_test_id <- renderText({
+    paste0(
+      " select_theme_attribute_o1: ", input$select_theme_attribute_o1, "\n",
+      " select_theme_attribute_o2: ", input$select_theme_attribute_o2, "\n",
+      " select_theme_attribute_o3: ", input$select_theme_attribute_o3, "\n",
+      " select_theme_attribute_o4: ", input$select_theme_attribute_o4
+    )
   })
   
   
@@ -522,27 +682,27 @@ ggplotlyModule <- function(input, output, session, rf_data) {
     
   })
   
-  output$test_layer_1 <- 
-    renderText({
-      layer_id <- current_mapping$layer_id
-      paste0(
-        "layer: ", layer_id,
-        "aes1: ", paste0(current_mapping[[paste0("aes",layer_id)]], collapse = ", "),
-        " attr1: ", paste0(current_mapping[[paste0("attr",layer_id)]], collapse = ", "),
-        " select_geom: ", input[[paste0("select_geom", layer_id)]]
-      )
-    })
-  
-  output$test_pt_options <- 
-    renderText({
-      p <- gg_options()
-      g1 <- p$gg_geom[[1]]
-      paste0(
-        "name: ", g1$name,
-        " aes: ", paste0(names(g1$aes_list), collapse = ", "),
-        " attr: ", paste0(g1$aes_list, collapse = ", "),
-        " geom_names: ", paste0(names(g1$geom_list)[names(g1$geom_list) != "data"], collapse = ", "),
-        " geom_values: ", paste0(g1$geom_list[names(g1$geom_list)[names(g1$geom_list) != "data"]], collapse = ", ")
-    )})
+  # output$test_layer_1 <- 
+  #   renderText({
+  #     layer_id <- current_mapping$layer_id
+  #     paste0(
+  #       "layer: ", layer_id,
+  #       "aes1: ", paste0(current_mapping[[paste0("aes",layer_id)]], collapse = ", "),
+  #       " attr1: ", paste0(current_mapping[[paste0("attr",layer_id)]], collapse = ", "),
+  #       " select_geom: ", input[[paste0("select_geom", layer_id)]]
+  #     )
+  #   })
+  # 
+  # output$test_pt_options <- 
+  #   renderText({
+  #     p <- gg_options()
+  #     g1 <- p$gg_geom[[1]]
+  #     paste0(
+  #       "name: ", g1$name,
+  #       " aes: ", paste0(names(g1$aes_list), collapse = ", "),
+  #       " attr: ", paste0(g1$aes_list, collapse = ", "),
+  #       " geom_names: ", paste0(names(g1$geom_list)[names(g1$geom_list) != "data"], collapse = ", "),
+  #       " geom_values: ", paste0(g1$geom_list[names(g1$geom_list)[names(g1$geom_list) != "data"]], collapse = ", ")
+  #   )})
   
 }
