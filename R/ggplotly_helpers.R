@@ -94,6 +94,58 @@ compose_ggplotly.ggplotly_options <- function(ggplotly_options, ...) {
     p <- p + purrr::lift_dl(geom)(append(list(mapping = geom_aes), g$geom_list))
   }
   
+  #add theme
+  theme_arg_list <- list()
+  
+  if(!is_null_empty_na(ggplotly_options$gg_theme)) {
+    
+    if(!is_null_empty_na(ggplotly_options$gg_theme$ggtheme)) {
+      
+      theme_func <- 
+        tryCatch({
+          get(ggplotly_options$gg_theme$ggtheme, envir = environment(ggplot2::ggplot))
+        }, error = function(e) {
+          get(ggplotly_options$gg_theme$ggtheme, envir = environment(ggthemes::theme_hc))
+        })
+      p <- p + theme_func()
+    }
+  
+    #create argument list
+    for(i in 1:ggplotly_options$gg_theme$theme_id) {
+      if(!(i %in% ggplotly_options$gg_theme$theme_deleted))
+      
+      #Obtain elemnt and attribute values and functions
+      theme_element <- ggplotly_options$gg_theme[[paste0("theme_element",i)]]
+      element_func <- theme_mapping(theme_element)$func
+      theme_attribute <- ggplotly_options$gg_theme[[paste0("theme_attribute",i)]]
+      theme_attribute_value <-  ggplotly_options$gg_theme[[paste0("theme_attribute_value",i)]]
+      
+      #create element value from function or from value
+      theme_element_value <-
+        if(is.null(element_func)) {
+          theme_attribute_value
+        } else {
+          params <- list(theme_attribute_value)
+          names(params) <- theme_attribute
+          purrr::lift_dl(element_func)(params)
+        }
+      
+      #create theme argument and value pairing
+      theme_arg <- list(theme_element_value)
+      names(theme_arg) <- theme_element
+       
+      #append to argument list
+      theme_arg_list <- append(theme_arg_list, theme_arg)
+
+    }
+    
+    #pass argument list to theme
+    if(length(theme_arg_list) > 0) {
+      p <- p + purrr::lift_dl(theme)(theme_arg_list)
+    }
+  }
+  
+  
   # scales
   p <- apply_fun_list_to_object(p, ggplotly_options$gg_scales, environment(ggplot2::ggplot))
   
@@ -108,9 +160,6 @@ compose_ggplotly.ggplotly_options <- function(ggplotly_options, ...) {
   
   #Annotation
   p <- apply_fun_list_to_object(p, ggplotly_options$gg_annotation, environment(ggplot2::ggplot))
-  
-  #theme
-  p <- apply_fun_list_to_object(p, ggplotly_options$gg_theme, environment(ggplot2::ggplot))
   
   #plotly
   p <- plotly::ggplotly(p, ...)

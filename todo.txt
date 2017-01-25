@@ -7,16 +7,13 @@ automatic conversion if required
 
 Layer:
 select data
-other fields relevant to geom (such as stat)
-add other geoms
 
 Theme:
-All themes into select_input
-save theme into reactivevalue
-load theme from reactivevalue
-convert reactivevalue into plot
+titles - add title (legend etc)
+ggthemer - colours?? (github package so requires dependency)
 
-
+Guides:
+legends etc.
 
 Scales:
 scale dialogue
@@ -35,4 +32,9 @@ create gadget and add-in
 UI:
 list/json to UI
 
+re-factor:
+Split functions into different modules (theme, scale, mapping etc)
+clear distinction between ggplotly options object, app output.
+app output should just be lists with text.
+ggplotly object should be a list of lists with text values - so can be saved to JSON
 

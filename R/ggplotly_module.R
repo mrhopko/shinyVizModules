@@ -7,6 +7,7 @@ ggplotlyModuleOutput <- function(id) {
       column(12,
              actionButton(ns("button_add_layer"), "Add Layer"),
              actionButton(ns("button_theme"), "Change Theme"),
+             actionButton(ns("button_title"), "Change Title"),
              tags$hr(),
              tags$div(id = paste0(ns("layer_ui_container"),0)),
              textOutput(ns("test_layer_1")),
@@ -154,12 +155,119 @@ ggplotly_module_param_dialog <- function(ns, param_list, layer_id) {
   
 }
 
+ggplotly_title_modal <- function(ns) {
+  modal_ui <-
+    fluidRow(
+      column(12,
+             actionButton(ns("button_title_add"), "Add")
+      ),
+      column(12,
+             tags$hr()
+             ),
+      column(10,
+             fluidRow(
+               column(4,
+                      tags$div("Title (ggtitle)")
+               ),
+               column(8,
+                      textInput(ns("text_ggtitle"), label = NULL)
+               ),
+               column(4,
+                      tags$div("x-axis (xlab)")
+               ),
+               column(8,
+                      textInput(ns("text_xlab"), label = NULL)
+               ),
+               column(4,
+                      tags$div("y-axis (ylab)")
+               ),
+               column(8,
+                      textInput(ns("text_ylab"), label = NULL)
+               )
+             )
+      ),
+      column(2),
+      column(12,
+             tags$div(id = paste0(ns("title_ui_container"), 0))
+      )
+    )
+  
+  modalDialog(
+    modal_ui,
+    footer = shiny::tagList(
+      shiny::modalButton("cancel"),
+      shiny::actionButton(ns("button_title_save"), "", icon = icon("floppy-o"))
+    ),
+    easyClose = TRUE
+  )
+}
+
+
+title_ui_row_func <- function(ns, i, current_title) {
+  
+  title_choices <- c("color", "fill", "shape", "size", "linetype", "weight", "alpha", "subtitle", "caption")
+  title_choices <-title_choices[order(title_choices)]
+
+  title_element_selected <- current_title[[paste0("title_element",i)]]
+  
+  tags$div(
+    tags$div(
+      fluidRow(
+        column(10,
+               fluidRow(
+                 column(4,
+                        selectizeInput(paste0(ns("select_title_element"),i), 
+                                       label = NULL, 
+                                       selected = title_element_selected, 
+                                       choices = title_choices, 
+                                       multiple = TRUE, 
+                                       options = list(maxItems = 1))
+                 ),
+                 column(8,
+                        textInput(paste0(ns("text_title_element_value"), i), label = NULL)
+                 )
+               )
+        ),
+        column(2,
+               actionButton(paste0(ns("button_remove_title"), i), "Remove")
+        )      
+      ),
+      id = paste0(ns("title_ui"), i)),
+    id = paste0(ns("title_ui_container"), i)
+  )
+}
+
 ggplotly_theme_modal <- function(ns) {
   
+  theme_choices <- 
+    c("theme_base",
+      "theme_calc",
+      "theme_economist",
+      "theme_excel",
+      "theme_few",
+      "theme_fivethirtyeight",
+      "theme_gdocs",
+      "theme_hc",
+      "theme_par",
+      "theme_pander",
+      "theme_solarized",
+      "theme_stata",
+      "theme_tufte",
+      "theme_wsj",
+      "theme_gray",
+      "theme_bw",
+      "theme_linedraw",
+      "theme_light",
+      "theme_dark",
+      "theme_minimal",
+      "theme_classic",
+      "theme_void")
+  theme_choices <- theme_choices[order(theme_choices)]
+
   modal_ui <- 
     fluidRow(
       column(6,
-        selectInput(ns("select_theme"), label = NULL, choices = c("theme_bw","theme_classic"))
+        selectInput(ns("select_theme"), label = NULL, choices = theme_choices)
       ),
       column(6,
              actionButton(ns("button_theme_add"), "Add ")
@@ -170,26 +278,6 @@ ggplotly_theme_modal <- function(ns) {
       column(12,
              textOutput(ns("theme_test_id")))
   )
-  
-  # ui_list <- list()
-  # 
-  # if(!is_null_empty_na(current_theme$theme_id)) {
-  #   if(current_theme$theme_id > 0) {
-  #     for(i in 1:current_theme$theme_id) {
-  #       ui_list[[i]] <- 
-  #         if(i %in% current_theme$theme_deleted) {
-  #           tags$div(id = paste0(ns("theme_ui_container"),i))
-  #         } else {
-  #           theme_list <- list(theme_element = current_theme[[paste0("theme_element", i)]],
-  #                              theme_attribute = current_theme[[paste0("theme_attribute",i)]],
-  #                              theme_attribute_value = current_theme[[paste0("theme_attribute_value",i)]])
-  #           ggplotly_theme_ui_row(i, ns, theme_list)
-  #         }
-  #         
-  #     }
-  #     modal_ui <- append(list(modal_ui), ui_list)
-  #   }
-  # }
   
   modalDialog(
     modal_ui,
@@ -202,42 +290,6 @@ ggplotly_theme_modal <- function(ns) {
   
 }
 
-# ggplotly_theme_ui_row <- function(n, ns, selected_list = NULL) {
-#   
-#   element_choices <- names(theme_mapping())
-#   
-#   tags$div(
-#     tags$div(
-#       fluidRow(
-#         column(10,
-#           fluidRow(
-#             column(4,
-#                    selectizeInput(paste0(ns("select_theme_element"),n), 
-#                                   label = NULL, 
-#                                   selected = selected_list$theme_element, 
-#                                   choices = element_choices, 
-#                                   multiple = TRUE, 
-#                                   options = list(maxItems = 1))
-#             ),
-#             column(4,
-#                    uiOutput(paste0(ns("select_theme_attribute"),n))
-#             ),
-#             column(4,
-#                    uiOutput(paste0(ns("theme_attriubte_value"), n))
-#             )
-#           )
-#         ),
-#         column(2,
-#                actionButton(paste0(ns("button_remove_theme"), n), "Remove")
-#         ),
-#         column(12,
-#                tags$hr()
-#         )
-#       ),
-#       id = paste0(ns("theme_ui"), n)),
-#     id = paste0(ns("theme_ui_container"), n)
-#   )
-# }
 
 ggplotly_theme_ui_widget <- function(param, ns, theme_id) {
   
@@ -297,8 +349,6 @@ insert_ui_row_by_row <- function(ns, ui_row_func, selector_func, rows = 0, where
 
 theme_ui_row_func <- function(ns, i, current_theme) {
   
-  print("theme row")
-  
   element_choices <- names(theme_mapping())
   
   element_selected <- 
@@ -349,6 +399,71 @@ ggplotlyModule <- function(input, output, session, rf_data) {
     names(rf_data())
   })
   
+  # Title Data --------
+  current_title <- reactiveValues(title_id = 0, title_deleted = 0)
+  
+  # Title UI elements ------------------
+  observeEvent(input$button_title, {
+    
+    showModal(ggplotly_title_modal(ns))
+    
+    insert_ui_row_by_row(ns,
+                         function(ns, i) title_ui_row_func(ns, i, current_title),
+                         function(i) paste0('#',ns("title_ui_container"), i - 1),
+                         current_title$title_id)
+    
+  })
+  
+  observeEvent(input$button_title_add, {
+    
+    # increment theme_id
+    title_id <- isolate(current_title$title_id + 1)
+    isolate(current_title$title_id <- title_id)
+    
+    # add ui row
+    insertUI(selector = paste0('#',ns("title_ui_container"), title_id - 1),
+             where = "afterEnd",
+             ui = title_ui_row_func(ns, title_id, current_title))
+    
+    # add observers
+    observeEvent(input[[paste0("button_remove_title", title_id)]], {
+      removeUI(selector = paste0('#',ns("title_ui"), title_id))
+      current_title$title_deleted <- c(current_title$title_deleted, title_id)
+    })
+    
+  })
+  
+  observeEvent(input$button_title_save, {
+    
+    if(!is_null_empty_na(input$select_ggtitle)) {
+      current_title$ggtitle <- input$select_ggtitle  
+    }
+    
+    if(!is_null_empty_na(input$select_xlab)) {
+      current_title$xlab <- input$select_xlab  
+    }
+    
+    if(!is_null_empty_na(input$select_ylab)) {
+      current_title$ylab <- input$select_ylab  
+    }
+    
+    if(!is_null_empty_na(current_title$title_id) && current_title$title_id > 0) {
+      for (i in 1:current_title$title_id) {
+        if(!(i %in% current_title$title_deleted)) {
+          current_title[[paste0("title_element", i)]] <- input[[paste0("select_title_element",i)]]
+          current_title[[paste0("title_element_value", i)]] <- input[[paste0("select_title_element_value",i)]]
+        } else {
+          current_title[[paste0("title_element", i)]] <- NULL
+          current_title[[paste0("title_element_value", i)]] <- NULL
+        }
+      }
+    }
+    
+    removeModal()
+    
+  })
+  
+  
   #Theme Data --------------
   current_theme <- reactiveValues(theme_id = 0, theme_deleted = 0)
   
@@ -359,6 +474,8 @@ ggplotlyModule <- function(input, output, session, rf_data) {
     
     #show mdoal
     showModal(ggplotly_theme_modal(ns))
+    
+    updateSelectInput(session, "select_theme", selected = current_theme$ggtheme)
     
     #insert ui from current_theme
     insert_ui_row_by_row(ns, 
@@ -371,8 +488,6 @@ ggplotlyModule <- function(input, output, session, rf_data) {
   # button_theme_add -----------------------------
   observeEvent(input$button_theme_add, {
     
-  print("button_theme_add")
-  
     # increment theme_id
     theme_id <- isolate(current_theme$theme_id + 1)
     isolate(current_theme$theme_id <- theme_id)
@@ -391,21 +506,21 @@ ggplotlyModule <- function(input, output, session, rf_data) {
             selectizeInput(paste0(ns("select_theme_attribute_o"), theme_id), 
                            label = NULL,
                            selected = input[[paste0("select_theme_attribute_o", theme_id)]],
-                           choices = names(theme_mapping(isolate(input[[paste0("select_theme_element", theme_id)]]))),
+                           choices = names(theme_mapping(isolate(input[[paste0("select_theme_element", theme_id)]]))$attributes),
                            multiple = TRUE,
                            options = list(maxItems = 1))
         })
     })
     
-    observeEvent(input[[paste0("select_theme_attribute_0")]], {
-      current_theme[[paste0]]
-    })
+#    observeEvent(input[[paste0("select_theme_attribute_0")]], {
+#      current_theme[[paste0]]
+#    })
     
     observeEvent(input[[paste0("select_theme_attribute_o", theme_id)]], {
 
       output[[paste0("select_theme_attribute_value", theme_id)]] <-
         renderUI({
-          param <- theme_mapping(isolate(input[[paste0("select_theme_element", theme_id)]]))[[isolate(input[[paste0("select_theme_attribute_o", theme_id)]])]]
+          param <- theme_mapping(isolate(input[[paste0("select_theme_element", theme_id)]]))$attributes[[isolate(input[[paste0("select_theme_attribute_o", theme_id)]])]]
           param$selected <- input[[paste0("select_theme_attribute_value_o", theme_id)]]
           print("render attribute value")
             ggplotly_theme_ui_widget(
@@ -433,9 +548,9 @@ ggplotlyModule <- function(input, output, session, rf_data) {
     if(!is_null_empty_na(current_theme$theme_id) && current_theme$theme_id > 0) {
       for (i in 1:current_theme$theme_id) {
         if(!(i %in% current_theme$theme_deleted)) {
-          current_theme[[paste0("theme_element", i)]] <- input[[paste0("theme_element",i)]]
-          current_theme[[paste0("theme_attribute", i)]] <- input[[paste0("theme_attribute",i)]]
-          current_theme[[paste0("theme_attribute_value", i)]] <- input[[paste0("theme_attribute_value",i)]]
+          current_theme[[paste0("theme_element", i)]] <- input[[paste0("select_theme_element",i)]]
+          current_theme[[paste0("theme_attribute", i)]] <- input[[paste0("select_theme_attribute_o",i)]]
+          current_theme[[paste0("theme_attribute_value", i)]] <- input[[paste0("select_theme_attribute_value_o",i)]]
         } else {
           current_theme[[paste0("theme_element", i)]] <- NULL
           current_theme[[paste0("theme_attribute", i)]] <- NULL
@@ -671,7 +786,7 @@ ggplotlyModule <- function(input, output, session, rf_data) {
       }
     }
     
-    p_options <- new_ggplotly_options(gg_geom = geom_list)
+    p_options <- new_ggplotly_options(gg_geom = geom_list, gg_theme = current_theme)
     
     p_options
   })
