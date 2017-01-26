@@ -155,7 +155,7 @@ ggplotly_module_param_dialog <- function(ns, param_list, layer_id) {
   
 }
 
-ggplotly_title_modal <- function(ns) {
+ggplotly_title_modal <- function(ns, current_title) {
   modal_ui <-
     fluidRow(
       column(12,
@@ -167,22 +167,22 @@ ggplotly_title_modal <- function(ns) {
       column(10,
              fluidRow(
                column(4,
-                      tags$div("Title (ggtitle)")
+                      tags$div("Title")
                ),
                column(8,
-                      textInput(ns("text_ggtitle"), label = NULL)
+                      textInput(ns("text_title"), label = NULL, value = current_title$title)
                ),
                column(4,
-                      tags$div("x-axis (xlab)")
+                      tags$div("x-axis")
                ),
                column(8,
-                      textInput(ns("text_xlab"), label = NULL)
+                      textInput(ns("text_x"), label = NULL, value = current_title$x)
                ),
                column(4,
-                      tags$div("y-axis (ylab)")
+                      tags$div("y-axis")
                ),
                column(8,
-                      textInput(ns("text_ylab"), label = NULL)
+                      textInput(ns("text_y"), label = NULL, value = current_title$y)
                )
              )
       ),
@@ -209,6 +209,7 @@ title_ui_row_func <- function(ns, i, current_title) {
   title_choices <-title_choices[order(title_choices)]
 
   title_element_selected <- current_title[[paste0("title_element",i)]]
+  title_element_value_selected <- current_title[[paste0("title_element_value",i)]]
   
   tags$div(
     tags$div(
@@ -224,7 +225,7 @@ title_ui_row_func <- function(ns, i, current_title) {
                                        options = list(maxItems = 1))
                  ),
                  column(8,
-                        textInput(paste0(ns("text_title_element_value"), i), label = NULL)
+                        textInput(paste0(ns("text_title_element_value"), i), label = NULL, value = title_element_value_selected)
                  )
                )
         ),
@@ -405,7 +406,7 @@ ggplotlyModule <- function(input, output, session, rf_data) {
   # Title UI elements ------------------
   observeEvent(input$button_title, {
     
-    showModal(ggplotly_title_modal(ns))
+    showModal(ggplotly_title_modal(ns, current_title))
     
     insert_ui_row_by_row(ns,
                          function(ns, i) title_ui_row_func(ns, i, current_title),
@@ -435,26 +436,18 @@ ggplotlyModule <- function(input, output, session, rf_data) {
   
   observeEvent(input$button_title_save, {
     
-    if(!is_null_empty_na(input$select_ggtitle)) {
-      current_title$ggtitle <- input$select_ggtitle  
-    }
-    
-    if(!is_null_empty_na(input$select_xlab)) {
-      current_title$xlab <- input$select_xlab  
-    }
-    
-    if(!is_null_empty_na(input$select_ylab)) {
-      current_title$ylab <- input$select_ylab  
-    }
-    
+    current_title$title <- input$text_title  
+    current_title$x <- input$text_x  
+    current_title$y <- input$text_y  
+
     if(!is_null_empty_na(current_title$title_id) && current_title$title_id > 0) {
       for (i in 1:current_title$title_id) {
         if(!(i %in% current_title$title_deleted)) {
-          current_title[[paste0("title_element", i)]] <- input[[paste0("select_title_element",i)]]
-          current_title[[paste0("title_element_value", i)]] <- input[[paste0("select_title_element_value",i)]]
+          current_title[[paste0("title_element",i)]] <- input[[paste0("select_title_element",i)]]
+          current_title[[paste0("title_element_value",i)]] <- input[[paste0("text_title_element_value",i)]]
         } else {
-          current_title[[paste0("title_element", i)]] <- NULL
-          current_title[[paste0("title_element_value", i)]] <- NULL
+          current_title[[paste0("title_element",i)]] <- NULL
+          current_title[[paste0("title_element_value",i)]] <- NULL
         }
       }
     }
@@ -786,7 +779,27 @@ ggplotlyModule <- function(input, output, session, rf_data) {
       }
     }
     
-    p_options <- new_ggplotly_options(gg_geom = geom_list, gg_theme = current_theme)
+    #Obtain labels/titles
+    gg_labs <- 
+      list(
+        title = current_title$title,
+        x = current_title$x,
+        y = current_title$y
+      )
+    
+    if(current_title$title_id > 0) {
+      for(i in 1:current_title$title_id) {
+        if(!(i %in% current_title$title_deleted)) {
+          if(!is_null_empty_na(current_title[[paste0("title_element", i)]]) && !is_null_empty_na(current_title[[paste0("title_element_value",i)]])) {
+            gg_labs[[current_title[[paste0("title_element", i)]]]] <- current_title[[paste0("title_element_value",i)]]
+          }
+        }
+      }
+    }
+    
+    print(gg_labs)
+    
+    p_options <- new_ggplotly_options(gg_geom = geom_list, gg_theme = current_theme, gg_labs = gg_labs)
     
     p_options
   })

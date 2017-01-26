@@ -1,15 +1,12 @@
 Mapping: 
-required for each geom
-allowed for each geom
-build default ui from list given geom
 data types shown against variables
 automatic conversion if required
 
 Layer:
 select data
+When add layer copy x,y mappings
 
 Theme:
-titles - add title (legend etc)
 ggthemer - colours?? (github package so requires dependency)
 
 Guides:
@@ -25,6 +22,10 @@ Output:
 -options object
 -plot code
 -options object as JSON object/file
+
+variables
+Factor re-ordering
+Filtering (only show top n etc)
 
 gadget:
 create gadget and add-in

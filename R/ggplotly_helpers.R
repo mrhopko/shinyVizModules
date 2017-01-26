@@ -13,7 +13,8 @@ new_ggplotly_options <- function(gg_geom = list(),
                                  gg_facet = list(),
                                  gg_position = list(),
                                  gg_annotation = list(),
-                                 gg_theme = list()) {
+                                 gg_theme = list(),
+                                 gg_labs = list()) {
   
   
   me <- list(
@@ -23,7 +24,8 @@ new_ggplotly_options <- function(gg_geom = list(),
     gg_facet = gg_facet,
     gg_position = gg_position,
     gg_annotation = gg_annotation,
-    gg_theme = gg_theme
+    gg_theme = gg_theme,
+    gg_labs = gg_labs
   )
   
   class(me) <- append(class(me), "ggplotly_options")
@@ -145,6 +147,11 @@ compose_ggplotly.ggplotly_options <- function(ggplotly_options, ...) {
     }
   }
   
+  # labs
+  if(length(ggplotly_options$gg_labs) > 0) {
+    print(ggplotly_options$gg_labs)
+    p <- p + purrr::lift_dl(labs)(ggplotly_options$gg_labs)
+  }
   
   # scales
   p <- apply_fun_list_to_object(p, ggplotly_options$gg_scales, environment(ggplot2::ggplot))
